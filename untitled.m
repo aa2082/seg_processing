@@ -1,9 +1,15 @@
 num_cells = 1:5;
-dir_save = '/Users/ali/Desktop/test2'; %directory to save figures to
+dir_save = '/Users/ali/Desktop/test3'; %directory to save figures to
 min_cell_log_area = 5;
 n_trenches = 8*ones(1,20);
 n_trenches(1,3) = 7;
 n_trenches(1,17) = 7;
+
+all_growth_rates = [];
+all_inten_t = [];
+
+%cell_prop_lt = {}; %cell array where each index is a cell lifetime associated with gr vector
+
 for f=0:19 %iterating over FOVs
     fov = "xy"+num2str(f,'%03d'); %fov name
     for tr=0:n_trenches(1,f+1)
@@ -32,8 +38,9 @@ for f=0:19 %iterating over FOVs
         clf
         close
         f = figure('visible','off');
-        subplot(3,1,1)
+        subplot(2,1,1)
         hold on
+        mean_total_inten_t = [];
         for c=num_cells
             cell = squeeze(data(:,c,:));
             ind = find(log(cell(:,2))>min_cell_log_area);
@@ -41,30 +48,39 @@ for f=0:19 %iterating over FOVs
             plot(log(cell(:,2)))
             if(size(cell,1)>0)
                 [ph,lh] = findpeaks(-diff(log(cell(:,2))),"threshold",0.25,'MinPeakDistance',5);
-                scatter(lh,log(cell(lh,2)),'o');
-                scatter(lh+1,log(cell(lh+1,2)),'b*');
+                xh=lh;
+                yh=log(cell(lh,2));
+                xl=lh+1;
+                yl=log(cell(lh+1,2));
+
+                gr=(yh(2:end)-yl(1:end-1))./(xh(2:end)-xl(1:end-1));
+                all_growth_rates = [all_growth_rates;gr];
+                
+                lt_end = xh(2:end);
+                lt_start = xl(1:end-1);
+                for a=1:length(gr)
+                    inten_lifetime = nanmean(cell(lt_start(a,1):lt_end(a,1),36));
+                    all_inten_t = [all_inten_t;inten_lifetime];
+
+                    %cell_prop_lt{end+1}=cell(lt_start(a,1):lt_end(a,1),:);
+                end
+                scatter(xh,yh,'o');
+                scatter(xl,yl,'b*');
+                total_inten_t = nanmean(cell(:,36));
+                mean_total_inten_t = [mean_total_inten_t,total_inten_t];
+
+                
+
+
             end
         end
         hold off
         %ylim([5 8])
         xlim([400 721])
         title("log(area)")
-        subplot(3,1,2)
-        hold on
-        mean_inten_t = [];
-        for c=num_cells
-            cell = squeeze(data(:,c,:));
-            %plot(log(cell(:,37)))
-            plot(cell(:,36))
-            mean_inten_t = [mean_inten_t,nanmean(cell(:,36))];
-        end
-        title("IntDen - YFP")
-        ylim([0, 10000])
-        legend(string(num_cells));
-        hold off
         cd(dir_save)
-        subplot(3,1,3)
-        bar(mean_inten_t)
+        subplot(2,1,2)
+        bar(mean_total_inten_t)
         ylim([0 1000])
         saveas(gcf,fov+"_"+tr+".png")
     end
