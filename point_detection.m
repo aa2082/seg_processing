@@ -5,10 +5,16 @@ n_trenches = 8*ones(1,20);
 n_trenches(1,3) = 7;
 n_trenches(1,17) = 7;
 
+all_area_added = [];
+all_div_times = [];
 all_growth_rates = [];
 all_inten_t = [];
 
-%cell_prop_lt = {}; %cell array where each index is a cell lifetime associated with gr vector
+cell_prop_lt = {}; % cell array where each index is a cell lifetime associated with gr vector
+
+% info about the cell_prop_lt
+% fov, trench, cell number in the trench from top, time of birth, time of death
+cell_prop_lt_info = [];
 
 for f=0:19 %iterating over FOVs
     fov = "xy"+num2str(f,'%03d'); %fov name
@@ -37,7 +43,7 @@ for f=0:19 %iterating over FOVs
         
         clf
         close
-        f = figure('visible','off');
+        figure('visible','off');
         subplot(2,1,1)
         hold on
         mean_total_inten_t = [];
@@ -53,7 +59,13 @@ for f=0:19 %iterating over FOVs
                 xl=lh+1;
                 yl=log(cell(lh+1,2));
 
-                gr=(yh(2:end)-yl(1:end-1))./(xh(2:end)-xl(1:end-1));
+                %specific properties
+                area_added = (yh(2:end)-yl(1:end-1));
+                div_times = (xh(2:end)-xl(1:end-1));
+                gr = area_added./div_times;
+                
+                all_area_added = [all_area_added;area_added];
+                all_div_times = [all_div_times; div_times];
                 all_growth_rates = [all_growth_rates;gr];
                 
                 lt_end = xh(2:end);
@@ -61,8 +73,14 @@ for f=0:19 %iterating over FOVs
                 for a=1:length(gr)
                     inten_lifetime = nanmean(cell(lt_start(a,1):lt_end(a,1),36));
                     all_inten_t = [all_inten_t;inten_lifetime];
+                    
+                    % enabling finding all properties for lt rather than specifics above
 
-                    %cell_prop_lt{end+1}=cell(lt_start(a,1):lt_end(a,1),:);
+                    %info about cell lifetime
+                    cur_info = [f,tr,c,lt_start(a,1),lt_end(a,1)];
+                    cell_prop_lt_info=[cell_prop_lt_info;cur_info];
+                    % fov, trench, cell number in the trench from top, time of birth, time of death
+                    cell_prop_lt{end+1}=cell(lt_start(a,1):lt_end(a,1),:);
                 end
                 scatter(xh,yh,'o');
                 scatter(xl,yl,'b*');
