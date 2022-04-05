@@ -1,4 +1,5 @@
 num_cells = 1:5;
+path_to_seg_results = '/Users/ali/Desktop/exp1_seg_2/';
 dir_save = '/Users/ali/Desktop/test3'; %directory to save figures to
 min_cell_log_area = 5;
 n_trenches = 8*ones(1,20);
@@ -22,8 +23,8 @@ for f=0:19 %iterating over FOVs
         fov + " tr"+tr
         
         %paths to segmentation "mCherry" csv and info "YFP" csv
-        path_to_data_seg = '/Users/ali/Desktop/exp1_seg_2/'+fov+'/Data/data_'+fov+'_tr_'+tr+'_mCherry.csv'; 
-        path_to_data_info = '/Users/ali/Desktop/exp1_seg_2/'+fov+'/Data/data_'+fov+'_tr_'+tr+'_YFP.csv';  
+        path_to_data_seg = path_to_seg_results+fov+'/Data/data_'+fov+'_tr_'+tr+'_mCherry.csv'; 
+        path_to_data_info = path_to_seg_results+fov+'/Data/data_'+fov+'_tr_'+tr+'_YFP.csv';  
         %converting csvs to matrices
         seg = table2array(readtable(path_to_data_seg,'VariableNamingRule','preserve')); % convert table to an array
         info = table2array(readtable(path_to_data_info,'VariableNamingRule','preserve'));
