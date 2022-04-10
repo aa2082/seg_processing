@@ -1,0 +1,48 @@
+clearvars -except data
+
+n_m = size(data,1);
+x = 1:721;
+res = 0.01;
+x_sp = 1:res:721;
+% When calculating the growth rate, linear fitting is used on the observed
+% datapoints in a lifetime range found from interpolating the data. Often
+% there is miss segmentation towards the beginning or end of growth, so
+% this variable determines how many observations at the beginning and end
+% of a cell's lifetime are not used for linear fitting
+n_l_trim_gr_fit = 1;
+n_r_trim_gr_fit = 1; 
+
+%div_t = [];
+div_t = {};
+c = [];
+lt_data = {};
+lt_results = {};
+for cell_num=1:1 %n_m
+    cell = log(data(cell_num,:,2));
+    sp = spline(x,cell,x_sp);
+    der = -diff(sp)./res; %derivative of log area interpolation
+    [pk,loc] = findpeaks(der,'MinPeakHeight',0.4,'MinPeakDistance',5); %finding intervals from peaks in der
+%     
+%     dt = diff(loc).*res;
+%     %div_t=[div_t,dt]; %div times are differences between interval seperators 
+%     div_t{end+1} = dt;
+%     mot = dt(1:end-1);
+%     dau = dt(2:end);
+%     c = [c;mean((mot-mean(mot)).*(dau-mean(dau)))./(std(mot)*std(dau))];
+    
+    lt_window = [x_sp(loc(1:end-1)).',x_sp(loc(2:end)).'];
+    for a = 1:length(lt_window)
+        c_data = squeeze(data(cell_num,:,:));
+        lt_data{cell_num,a} = c_data((lt_window(a,1)<c_data(:,28) & lt_window(a,2)>c_data(:,28)),:);
+        lt_results{cell_num,a}.divt = lt_data{cell_num,a}(end,28)-lt_data{cell_num,a}(1,28);
+        
+        %range of observations used for growth rate calculation
+        range_for_gr = n_l_trim_gr_fit+1:size(lt_data{cell_num,a},1)-n_r_trim_gr_fit;
+        lt_results{cell_num,a}.gr = polyfit(lt_data{cell_num,a}(range_for_gr,28),log(lt_data{cell_num,a}(range_for_gr,2)),1);
+        SS_res = sum(abs(log(lt_data{cell_num,a}(range_for_gr,2))-polyval(lt_results{cell_num,a}.gr,lt_data{cell_num,a}(range_for_gr,28))));
+        SS_tot = var()
+    end
+end
+
+
+    

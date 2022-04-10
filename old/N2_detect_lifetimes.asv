@@ -1,0 +1,26 @@
+clearvars -except data
+
+n_m = size(data,1);
+x = 1:721;
+res = 0.01;
+x_sp = 1:res:721;
+
+%div_t = [];
+div_t = {};
+c = [];
+lt_windows = [];
+for cell_num=1:n_m
+    cell = log(data(cell_num,:,2));
+    sp = spline(x,cell,x_sp);
+    der = -diff(sp)./res; %derivative of log area interpolation
+    [pk,loc] = findpeaks(der,'MinPeakHeight',0.4,'MinPeakDistance',5); %finding intervals from peaks in der
+    
+    dt = diff(loc).*res;
+    %div_t=[div_t,dt]; %div times are differences between interval seperators 
+    div_t{end+1} = dt;
+    mot = dt(1:end-1);
+    dau = dt(2:end);
+    c = [c;mean((mot-mean(mot)).*(dau-mean(dau)))./(std(mot)*std(dau))];
+    lt_windows{end+1} = [loc(1:end-1).',loc(2:end).'].*res;
+    lt_data{end+1} = 
+end

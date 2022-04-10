@@ -13,20 +13,20 @@ hold on
 sgtitle("Growth Rate Distributions")
 %subplot(2,1,1)
 yfp=all_growth_rates(id_YFP);
-m_yfp = mean(yfp(yfp<.1));
-std_yfp = std(yfp(yfp<.1));
+m_yfp = mean(yfp);
+std_yfp = std(yfp);
 E = 0:0.004:0.12;
 [N,edges] = histcounts(yfp,E,'Normalization','probability');
-bar(E(1:end-1)+0.002,N,'yellow','FaceAlpha',0.2)
+bar(E(1:end-1)+0.002,N)
 %xlim([0,.2])
 %title("ampR:YFP - μ = "+m_yfp+"; σ = "+std_yfp+"; N = "+length(yfp))
 
 %subplot(2,1,2)
 noyfp=all_growth_rates(id_noYFP);
-m_noyfp = mean(noyfp(yfp<.1));
-std_noyfp = std(noyfp(yfp<.1));
-[N2,edges] = histcounts(noyfp,E,'Normalization','probability');
-bar(E(1:end-1)+0.002,N2,'red','FaceAlpha',0.2)
+m_noyfp = mean(noyfp);
+std_noyfp = std(noyfp);
+[N2,edges] = histcounts(noyfp,'Normalization','probability');
+bar(E(1:end-1)+0.002,N2)
 title("RFP - μ = "+m_noyfp+"; σ = "+std_noyfp+"; N = "+length(noyfp))
 hold off
 

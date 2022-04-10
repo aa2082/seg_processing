@@ -1,5 +1,5 @@
-num_cells = 1:5;
-path_to_seg_results = '/Users/ali/Desktop/exp1_seg_2/';
+num_cells = 1:1;
+path_to_seg_results = '/Users/ali/Desktop/exp1_seg_gif_with_roi/';
 dir_save = '/Users/ali/Desktop/test3'; %directory to save figures to
 min_cell_log_area = 5;
 n_trenches = 8*ones(1,20);
@@ -45,62 +45,52 @@ for f=0:19 %iterating over FOVs
         clf
         close
         figure('visible','off');
-        subplot(2,1,1)
         hold on
-        mean_total_inten_t = [];
         for c=num_cells
             cell = squeeze(data(:,c,:));
             ind = find(log(cell(:,2))>min_cell_log_area);
             cell = cell(ind,:);
             plot(log(cell(:,2)))
             if(size(cell,1)>0)
-                [ph,lh] = findpeaks(-diff(log(cell(:,2))),"threshold",0.25,'MinPeakDistance',5);
-                xh=lh;
-                yh=log(cell(lh,2));
-                xl=lh+1;
-                yl=log(cell(lh+1,2));
-
-                %specific properties
-                area_added = (yh(2:end)-yl(1:end-1));
-                div_times = (xh(2:end)-xl(1:end-1));
-                gr = area_added./div_times;
-                
-                all_area_added = [all_area_added;area_added];
-                all_div_times = [all_div_times; div_times];
-                all_growth_rates = [all_growth_rates;gr];
-                
-                lt_end = xh(2:end);
-                lt_start = xl(1:end-1);
-                for a=1:length(gr)
-                    inten_lifetime = nanmean(cell(lt_start(a,1):lt_end(a,1),36));
-                    all_inten_t = [all_inten_t;inten_lifetime];
-                    
-                    % enabling finding all properties for lt rather than specifics above
-
-                    %info about cell lifetime
-                    cur_info = [f,tr,c,lt_start(a,1),lt_end(a,1)];
-                    cell_prop_lt_info=[cell_prop_lt_info;cur_info];
-                    % fov, trench, cell number in the trench from top, time of birth, time of death
-                    cell_prop_lt{end+1}=cell(lt_start(a,1):lt_end(a,1),:);
+                try
+                    [ph,lh] = findpeaks(-diff(log(cell(:,2))),"threshold",0.25,'MinPeakDistance',5);
+                    xh=lh;
+                    yh=log(cell(lh,2));
+                    xl=lh+1;
+                    yl=log(cell(lh+1,2));
+    
+                    %specific properties
+                    gr = [];
+                    for i=1:length(xl)-1
+                        range = (xl(i):xh(i+1));
+                        gr_c = polyfit(cell(range,11),log(cell(range,2)),1);
+                        gr = [gr;gr_c(1,2)];
+                    end
+                    all_growth_rates = [all_growth_rates;gr];
+                    lt_end = xh(2:end);
+                    lt_start = xl(1:end-1);
+                    for a=1:length(gr)
+                        inten_lifetime = nanmean(cell(lt_start(a,1):lt_end(a,1),36));
+                        all_inten_t = [all_inten_t;inten_lifetime];
+                        
+                        % enabling finding all properties for lt rather than specifics above
+    
+                        %info about cell lifetime
+                        cur_info = [f,tr,c,lt_start(a,1),lt_end(a,1)];
+                        cell_prop_lt_info=[cell_prop_lt_info;cur_info];
+                        % fov, trench, cell number in the trench from top, time of birth, time of death
+                        cell_prop_lt{end+1}=cell(lt_start(a,1):lt_end(a,1),:);
+                    end
+                    scatter(xh,yh,'o');
+                    scatter(xl,yl,'b*');
+                catch
+                continue
                 end
-                scatter(xh,yh,'o');
-                scatter(xl,yl,'b*');
-                total_inten_t = nanmean(cell(:,36));
-                mean_total_inten_t = [mean_total_inten_t,total_inten_t];
-
-                
-
-
             end
         end
         hold off
-        %ylim([5 8])
-        xlim([400 721])
-        title("log(area)")
+        %xlim([600 660])
         cd(dir_save)
-        subplot(2,1,2)
-        bar(mean_total_inten_t)
-        ylim([0 1000])
         saveas(gcf,fov+"_"+tr+".png")
     end
 end
