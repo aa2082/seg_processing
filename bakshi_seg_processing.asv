@@ -1,10 +1,9 @@
 g = []; % store g values
 n_m = size(data,1);
-r2 = nan(n_m,1);
-poly_fit = nan(n_m,1,2);
-growth_rate = nan(n_m,1);
-division_time = nan(n_m,1);
-lt_data = {n_m,1};
+r2 = nan(n_m,200);
+poly_fit = nan(n_m,200);
+growth_rate = nan(n_m,200);
+division_time = nan(n_m,200);
 for i = 1:n_m
     a = data(i,:,2);
     close all
@@ -58,16 +57,13 @@ for i = 1:n_m
         Rsq = 1-SSres/SStot;
         
         %lifetime values - stored as matrices - (mother_cell_number x lifetime) 
-        poly_fit(i,i_div,:) = p;
+        poly_fit(i,i_div) = p;
         growth_rate(i,i_div) = p(1);
         r2(i,i_div) = Rsq;
-        lt_data{i,i_div} = data(i,x,:);
     end
-    %more lifetime values that don't need to be stored in the loop
-    division_time(i,1:length(lc_pre_div)) = lc_pre_div(:)-lc_post_div(:);
+    division_time(i,:) = lc_pre_div(:)-lc_post_div(:);
     %pause(0.05);
-    (i/n_m)*100+"%"
 end
 
-results = table(poly_fit,growth_rate,division_time,r2,lt_data);
+results = table()
 
