@@ -1,6 +1,6 @@
 g = []; % store g values
 for i = 1:1 %CHANGED FROM: size(A_bg,2)
-    a = data(:,2);    %CHANGED FROM: a = A_bg(:,i);
+    a = data(1,:,2);    %CHANGED FROM: a = A_bg(:,i);
     close all
     figure(1); plot(log2(a),'+'); hold on;
 

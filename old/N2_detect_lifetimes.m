@@ -1,6 +1,7 @@
 clearvars -except data
 plot_lt = false;
-dir_save = '/Users/ali/Desktop/lt_graphs/';
+plot_all = true;
+dir_save = '/Users/ali/Desktop/cell_graphs/';
 dir_workspace = "/Users/ali/seg_processing/";
 n_m = size(data,1);
 x_t = 1:721;
@@ -25,13 +26,20 @@ lt_results.number_of_observations = [];
 lt_results.r2 = [];
 lt_results.poly_fit = [];
 lt_results.growth_rate = [];
-for cell_num=1:n_m
+
+cell_results = struct;
+cell_results.lag = [];
+tic %start clock
+for cell_num=1:1
     cell = log(data(cell_num,:,2));
     sp = spline(x_t,cell,x_sp);
     der = -diff(sp)./res; %derivative of log area interpolation
     [pk,loc] = findpeaks(der,'MinPeakHeight',0.4,'MinPeakDistance',5/res); %finding intervals from peaks in der
     
     lt_window = [x_sp(loc(1:end-1)).',x_sp(loc(2:end)).'];
+    if(size(lt_window,1)>0)
+        cell_results.lag(end+1,1) = lt_window(1,1);
+    end
     for a = 1:size(lt_window,1)
         lt_results.mother_cell_number(end+1,1)= cell_num;
         lt_results.lifetime_number(end+1,1)= a;
@@ -70,7 +78,13 @@ for cell_num=1:n_m
             run(dir_workspace+"single_lt_graph.m");
         end
     end
+    elapsed = toc;
+    (cell_num/n_m)*100 + "%"
+    ((elapsed/cell_num)*n_m - elapsed)/60 + " minutes remaining" %time left
+    if(plot_all)
+        run(dir_workspace+"single_lt_graph.m");
+    end
 end
-clearvars -except data lt_data lt_results
+%clearvars -except data lt_data lt_results cell_results
 
     
