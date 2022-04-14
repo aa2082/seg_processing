@@ -26,7 +26,6 @@ for f=0:19 %iterating over FOVs
         clear seg info
         
         A=sortrows(A,28);% sort the data in time
-        all_fiji_data{f+1,tr+1}=A;
         A=A((log(A(:,2))>min_cell_log_area),:); %remove anything to small
         for t=1:721
             cur = A((A(:,28)==t),:);
@@ -40,4 +39,4 @@ for f=0:19 %iterating over FOVs
     end
 end
 
-clearvars -except data all_fiji_data
+clearvars -except data
