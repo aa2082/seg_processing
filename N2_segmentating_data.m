@@ -1,5 +1,17 @@
+dir_save = "/Users/ali/Desktop/mother_cell_segmentation";
+delta_t = 2; %time between aquisitions
+
+min_r2 = 0.9;
+max_r2 = 0.99;
+min_gr = 0;
+max_gr = 0.6;
+min_dt = 20;
+max_dt = 60;
+min_n_obs = 4;
+
 g = []; % store g values
 n_m = size(data,1);
+keep = [];
 
 r2 = nan(n_m,1);
 poly_fit = nan(n_m,1,2);
@@ -16,7 +28,7 @@ v_growth_rate = [];
 v_division_time = [];
 v_rfp = [];
 v_yfp = [];
-v_number_of_observations = 
+v_number_of_observations = [];
 
 v_lt_data = [];
 
@@ -28,20 +40,8 @@ for i = 1:n_m
 
     % cleaning up segmentation errors
 
-    [~,lc_e_t1] = findpeaks(a,'Threshold',1);% locating error type 1, joining divided cells
-    for it1 = 1:length(lc_e_t1)
-        a(lc_e_t1) = (a(lc_e_t1-1)+a(lc_e_t1+1))/2;
-    end
-
-
-    [~,lc_e_t2] = findpeaks(max(a)-a,'Threshold',1);% locating error type 2, cutting cells in halves
-    for it2 = 1:length(lc_e_t2)
-        a(lc_e_t2) = (a(lc_e_t2-1)+a(lc_e_t2+1))/2;
-    end
-
-
     plot(log2(a),'k'); hold on;
-    [~,lc_pre_div] =findpeaks(a,'MinPeakDistance',5,'MinPeakProminence',1);
+    [~,lc_pre_div] =findpeaks(-diff(log2(a)),'MinPeakDistance',5,'MinPeakProminence',0.5);
     lc_post_div = lc_pre_div+1;
 
     % check for correct division points. 
@@ -66,8 +66,11 @@ for i = 1:n_m
         y = log2(a(x));
         p = polyfit(x,y,1);
         yfit = polyval(p,x);
-        plot(x,yfit,'r')
+        
         g = [g,p(1)];
+        gr = p(1)/delta_t;
+        dt = (x(end)-x(1))*delta_t;
+        n_obs = length(x);
         
         SStot = sum((y-mean(y)).^2);                  
         SSres = sum((y-yfit).^2);      
@@ -75,7 +78,7 @@ for i = 1:n_m
         
         %lifetime values - stored as matrices - (mother_cell_number x lifetime) 
         poly_fit(i,i_div,:) = p;
-        growth_rate(i,i_div) = p(1);
+        growth_rate(i,i_div) = gr;
         r2(i,i_div) = Rsq;
         lt_data{i,i_div} = data(i,x,:);
         rfp(i,i_div) = nanmean(data(i,x,23));
@@ -87,15 +90,30 @@ for i = 1:n_m
         v_lt_data{end+1,1} = data(i,x,:);
         v_rfp(end+1,1) = nanmean(data(i,x,23));
         v_yfp(end+1,1) = nanmean(data(i,x,36));
-        v_division_time(end+1,1) = x(end)-x(1);
-        v_number_of_observations(end+1,1) = length(x);
+        v_division_time(end+1,1) = dt;
+        v_number_of_observations(end+1,1) = n_obs;
+
+        if(...
+                Rsq>min_r2 & Rsq<max_r2&...
+                gr>min_gr & gr<max_gr&...
+                dt>min_dt & dt<max_dt&...
+                n_obs>min_n_obs...
+                )
+            plot(x,yfit,'g')
+            keep(end+1,1) = 1;
+        else
+            plot(x,yfit,'r')
+        end
     end
     %more lifetime values that don't need to be stored in the loop
     division_time(i,1:length(lc_pre_div)) = lc_pre_div(:)-lc_post_div(:);
     %pause(0.05);
+    %cd(dir_save)
+    %saveas(gcf,i+".png")
+    export_fig(dir_save+"/"+i+".png",'-m3')
     (i/n_m)*100+"%"
 end
 
 results = table(poly_fit,growth_rate,division_time,r2,lt_data,rfp,yfp);
-v_results = table(v_poly_fit,v_growth_rate,v_division_time,v_r2,v_lt_data,v_rfp,v_yfp);
-clearvars -except data results v_results
+v_results = table(v_poly_fit,v_growth_rate,v_division_time,v_r2,v_lt_data,v_rfp,v_yfp,v_number_of_observations);
+clearvars -except data results v_results all_fiji_data keep
