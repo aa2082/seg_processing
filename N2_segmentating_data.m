@@ -2,16 +2,16 @@ dir_save = "/Users/ali/Desktop/mother_cell_segmentation";
 delta_t = 2; %time between aquisitions
 
 min_r2 = 0.9;
-max_r2 = 0.99;
+max_r2 = 1.0;
 min_gr = 0;
 max_gr = 0.6;
-min_dt = 20;
+min_dt = 18;
 max_dt = 60;
 min_n_obs = 4;
 
 g = []; % store g values
 n_m = size(data,1);
-keep = [];
+
 
 r2 = nan(n_m,1);
 poly_fit = nan(n_m,1,2);
@@ -22,6 +22,7 @@ yfp = nan(n_m,1);
 
 lt_data = {n_m,1};
 
+v_keep = [];
 v_r2 = [];
 v_poly_fit = [];
 v_growth_rate = [];
@@ -34,6 +35,7 @@ v_lt_data = [];
 
 
 for i = 1:n_m
+    clf
     a = data(i,:,2);
     close all
     figure(1); plot(log2(a),'+'); hold on;
@@ -100,20 +102,19 @@ for i = 1:n_m
                 n_obs>min_n_obs...
                 )
             plot(x,yfit,'g')
-            keep(end+1,1) = 1;
+            v_keep(end+1,1) = 1;
         else
             plot(x,yfit,'r')
+            v_keep(end+1,1) = 0;
         end
     end
     %more lifetime values that don't need to be stored in the loop
     division_time(i,1:length(lc_pre_div)) = lc_pre_div(:)-lc_post_div(:);
-    %pause(0.05);
-    %cd(dir_save)
-    %saveas(gcf,i+".png")
-    export_fig(dir_save+"/"+i+".png",'-m3')
+    export_fig(dir_save+"/"+i+".png")
+    %hgsave(gcf,dir_save+"/"+i+".fig",'-v7');
     (i/n_m)*100+"%"
 end
-
+v_keep = logical(v_keep);
 results = table(poly_fit,growth_rate,division_time,r2,lt_data,rfp,yfp);
-v_results = table(v_poly_fit,v_growth_rate,v_division_time,v_r2,v_lt_data,v_rfp,v_yfp,v_number_of_observations);
+v_results = table(v_poly_fit,v_growth_rate,v_division_time,v_r2,v_lt_data,v_rfp,v_yfp,v_number_of_observations,v_keep);
 clearvars -except data results v_results all_fiji_data keep
