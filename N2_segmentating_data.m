@@ -1,5 +1,7 @@
 dir_save = "/Users/ali/Desktop/mother_cell_segmentation";
 delta_t = 2; %time between aquisitions
+save_fig = true;
+peak_prom = 0.3; %previously 0.5
 
 min_r2 = 0.9;
 max_r2 = 1.0;
@@ -43,7 +45,7 @@ for i = 1:n_m
     % cleaning up segmentation errors
 
     plot(log2(a),'k'); hold on;
-    [~,lc_pre_div] =findpeaks(-diff(log2(a)),'MinPeakDistance',5,'MinPeakProminence',0.5);
+    [~,lc_pre_div] =findpeaks(-diff(log2(a)),'MinPeakDistance',5,'MinPeakProminence',peak_prom);
     lc_post_div = lc_pre_div+1;
 
     % check for correct division points. 
@@ -110,7 +112,9 @@ for i = 1:n_m
     end
     %more lifetime values that don't need to be stored in the loop
     division_time(i,1:length(lc_pre_div)) = lc_pre_div(:)-lc_post_div(:);
-    export_fig(dir_save+"/"+i+".png")
+    if save_fig
+        export_fig(dir_save+"/"+i+".png")
+    end
     %hgsave(gcf,dir_save+"/"+i+".fig",'-v7');
     (i/n_m)*100+"%"
 end
