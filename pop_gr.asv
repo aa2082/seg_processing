@@ -15,7 +15,8 @@ for cell_num = 1:178;
                     1+sqrt(1-2*log(2)*...
                         (std(tau)/(mean(tau))^2) * ((1+c)/(1-c))...
                     ) ...
-                );
+                )
+            );
     %"mean gr from MM " + mean(results.growth_rate(cell_num,:))+...
     %" p_gr " + p_gr
     gr_MM = [gr_MM, mean(results.growth_rate(cell_num,:))];
@@ -23,7 +24,7 @@ for cell_num = 1:178;
 end
 clf
 hold on
-histogram(gr_MM)
-histogram(gr_pop)
+histogram(gr_MM,20)
+histogram(gr_pop,20)
 hold off
-legend([""])
+legend("MM","Pop")
